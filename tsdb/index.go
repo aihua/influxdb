@@ -1562,6 +1562,10 @@ func (is IndexSet) tagValueIterator(name, key []byte) (TagValueIterator, error) 
 // TagKeyHasAuthorizedSeries determines if there exists an authorized series for
 // the provided measurement name and tag key.
 func (is IndexSet) TagKeyHasAuthorizedSeries(auth query.Authorizer, name, tagKey []byte) (bool, error) {
+	if query.AuthorizerIsOpen(auth) {
+		return true, nil
+	}
+
 	release := is.SeriesFile.Retain()
 	defer release()
 
@@ -1581,10 +1585,6 @@ func (is IndexSet) TagKeyHasAuthorizedSeries(auth query.Authorizer, name, tagKey
 
 		if e.SeriesID == 0 {
 			return false, nil
-		}
-
-		if query.AuthorizerIsOpen(auth) {
-			return true, nil
 		}
 
 		name, tags := is.SeriesFile.Series(e.SeriesID)
